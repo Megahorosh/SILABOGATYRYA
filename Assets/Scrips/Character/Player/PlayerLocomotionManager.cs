@@ -11,8 +11,10 @@ public class PlayerLocomotionManager : CharacterLocomotionManager
     public float moveAmount;
 
     private Vector3 moveDirection;
+    private Vector3 targetRorationDirection;
     [SerializeField] float walkingSpeed = 2;
     [SerializeField] float runningSpeed = 5;
+    [SerializeField] float rotationSpeed = 15;
 
     protected override void Awake()
     {
@@ -24,6 +26,7 @@ public class PlayerLocomotionManager : CharacterLocomotionManager
     public void HandleAllMovement()
     {
         HandleGroundedMovement();
+        HandleRotation();
         // AERIAL MOVEMENT
     }
 
@@ -50,5 +53,23 @@ public class PlayerLocomotionManager : CharacterLocomotionManager
         {
             player.characterController.Move(moveDirection * walkingSpeed * Time.deltaTime);
         }
+    }
+
+    private void HandleRotation()
+    {
+        targetRorationDirection = Vector3.zero;
+        targetRorationDirection = PlayerCamera.instance.cameraObject.transform.forward * verticalMovement;
+        targetRorationDirection = targetRorationDirection + PlayerCamera.instance.cameraObject.transform.right * horizontalMovement;
+        targetRorationDirection.Normalize();
+        targetRorationDirection.y = 0;
+
+        if (targetRorationDirection == Vector3.zero)
+        {
+            targetRorationDirection = transform.forward;
+        }
+
+        Quaternion newRotation = Quaternion.LookRotation(targetRorationDirection);
+        Quaternion targetRotation = Quaternion.Slerp(transform.rotation, newRotation, rotationSpeed * Time.deltaTime);
+        transform.rotation = targetRotation;
     }
 }
